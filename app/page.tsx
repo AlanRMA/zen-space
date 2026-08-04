@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 
 type Mode = "zen" | "smart";
 type Theme = "dark" | "light";
@@ -302,7 +301,10 @@ export default function Home() {
     return (
       <main className="practice-shell">
         <div className="practice-topbar">
-          <span className="brand-logo-wrap"><Image src="/logo.png" alt="" width="36" height="36" className="brand-logo" priority /></span>
+          <span className="brand-logo-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" width="36" height="36" className="brand-logo" decoding="async" />
+          </span>
           <span className="practice-mode">MODO {mode.toUpperCase()}</span>
           <div className="practice-actions">
             <label className="practice-sound">
@@ -359,7 +361,10 @@ export default function Home() {
     <main className="app-shell">
       <header className="site-header">
         <button className="brand" onClick={() => setTab("inicio")} aria-label="Ir para o início">
-          <span className="brand-logo-wrap"><Image src="/logo.png" alt="" width="36" height="36" className="brand-logo" priority /></span>
+          <span className="brand-logo-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="" width="36" height="36" className="brand-logo" decoding="async" />
+          </span>
           <span>ZEN SPACE</span>
         </button>
         <nav className="nav-tabs" aria-label="Navegação principal">
