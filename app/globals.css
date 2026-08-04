@@ -164,8 +164,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 .breath-circle.phase-holdIn { background: #52524e; color: #f4f2ec; box-shadow: 0 0 54px rgba(82, 82, 78, .16); }
 .breath-circle.phase-holdOut { background: #85847e; color: #f6f4ee; box-shadow: 0 0 60px rgba(133, 132, 126, .12); }
 .breath-circle span { font-size: 17px; letter-spacing: .01em; line-height: 1; }
-.practice-timer { font-family: var(--font-geist-mono), monospace; font-size: clamp(38px, 5vw, 55px); letter-spacing: -.07em; margin-top: 20px; }
-.practice-breath-label { color: var(--muted); font-size: 10px; margin-top: 8px; }
+.practice-time-area { min-height: 44px; margin-top: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.practice-time-area.is-visible { min-height: 92px; }
+.practice-timer { font-family: var(--font-geist-mono), monospace; font-size: clamp(38px, 5vw, 55px); letter-spacing: -.07em; line-height: 1; }
+.timer-toggle { min-height: 34px; padding: 8px 12px; border: 0; border-radius: 999px; background: var(--surface); color: var(--muted); display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 9px; transition: color .2s ease, background .2s ease; }
+.timer-toggle:hover, .timer-toggle[aria-pressed="true"] { color: var(--ink); background: var(--surface-2); }
+.practice-time-area.is-visible .timer-toggle { min-height: 26px; padding: 4px 9px; font-size: 8px; }
+.practice-breath-label { color: var(--muted); font-size: 10px; margin-top: 4px; }
 .checkpoint-panel { border-top: 1px solid var(--line); padding: 20px clamp(20px, 5vw, 70px) 24px; display: grid; grid-template-columns: minmax(170px, .8fr) minmax(400px, 1.5fr) minmax(170px, .8fr); align-items: center; gap: 30px; background: color-mix(in srgb, var(--surface) 87%, transparent); }
 .checkpoint-panel.is-open { border-top-color: var(--ink); }
 .checkpoint-copy { display: flex; flex-direction: column; gap: 7px; }
@@ -246,7 +251,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
   .practice-sound select { max-width: 68px; }
   .practice-center { justify-content: center; padding: 12px 20px; }
   .breath-stage { width: min(68vw, 300px); }
-  .practice-timer { font-size: 38px; margin-top: 6px; }
+  .practice-timer { font-size: 38px; }
+  .practice-time-area { margin-top: 5px; }
+  .practice-time-area.is-visible { min-height: 78px; }
   .checkpoint-panel { padding: 15px 14px 18px; gap: 12px; }
   .checkpoint-buttons { gap: 5px; }
   .checkpoint-buttons button { height: 58px; justify-content: center; flex-direction: column; gap: 4px; padding: 5px; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AudioWaveform, BookOpen, ChevronDown, ChevronUp, CloudRain, Play, Volume2, VolumeX, Waves, type LucideIcon } from "lucide-react";
+import { AudioWaveform, BookOpen, ChevronDown, ChevronUp, CloudRain, Play, Timer, Volume2, VolumeX, Waves, type LucideIcon } from "lucide-react";
 
 type Mode = "zen" | "smart";
 type Theme = "dark" | "light";
@@ -97,6 +97,7 @@ export default function Home() {
   const [presets, setPresets] = useState<BreathPreset[]>([]);
   const [soundscape, setSoundscape] = useState<Soundscape>("none");
   const [practiceActive, setPracticeActive] = useState(false);
+  const [timerVisible, setTimerVisible] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
   const [checkpointOpen, setCheckpointOpen] = useState(false);
@@ -231,6 +232,7 @@ export default function Home() {
     setCheckpoints(0);
     setCheckpointOpen(false);
     setCheckpointChoice(null);
+    setTimerVisible(false);
     lastCheckpointRef.current = 0;
     if (mode === "smart") playChime(audioContextRef);
     playAmbient(soundscape);
@@ -325,7 +327,13 @@ export default function Home() {
               <span>{breathPhase.label}</span>
             </div>
           </div>
-          <div className="practice-timer">{formatTimer(elapsed)}</div>
+          <div className={`practice-time-area ${timerVisible ? "is-visible" : ""}`}>
+            {timerVisible && <div className="practice-timer">{formatTimer(elapsed)}</div>}
+            <button className="timer-toggle" onClick={() => setTimerVisible((visible) => !visible)} aria-pressed={timerVisible} aria-label={timerVisible ? "Ocultar cronômetro" : "Mostrar cronômetro"}>
+              <Timer size={14} strokeWidth={1.6} aria-hidden="true" />
+              <span>{timerVisible ? "Ocultar tempo" : "Mostrar tempo"}</span>
+            </button>
+          </div>
           <div className="practice-breath-label">Respiração {breathLabel(breath)}</div>
         </section>
 
