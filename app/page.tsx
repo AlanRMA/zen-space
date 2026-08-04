@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AudioWaveform, BookOpen, ChevronDown, ChevronUp, CloudRain, Volume2, VolumeX, Waves, type LucideIcon } from "lucide-react";
+import { AudioWaveform, BookOpen, ChevronDown, ChevronUp, CloudRain, Play, Volume2, VolumeX, Waves, type LucideIcon } from "lucide-react";
 
 type Mode = "zen" | "smart";
 type Theme = "dark" | "light";
@@ -282,8 +282,7 @@ export default function Home() {
     const scale = selected?.key === "inhale" ? 0.58 + progress * 0.42
       : selected?.key === "exhale" ? 1 - progress * 0.42
       : selected?.key === "holdIn" ? 1 : 0.58;
-    const remaining = selected ? Math.max(1, Math.ceil(selected.duration - within)) : 1;
-    return { key: selected?.key ?? "inhale", label: selected?.label ?? "Respire", scale, remaining };
+    return { key: selected?.key ?? "inhale", label: selected?.label ?? "Respire", scale };
   }, [breath, elapsed]);
 
   const filteredSessions = useMemo(() => {
@@ -324,7 +323,6 @@ export default function Home() {
             <div className="breath-orbit orbit-two" />
             <div className={`breath-circle phase-${breathPhase.key}`} style={{ transform: `scale(${breathPhase.scale})` }}>
               <span>{breathPhase.label}</span>
-              <strong>{breathPhase.remaining}</strong>
             </div>
           </div>
           <div className="practice-timer">{formatTimer(elapsed)}</div>
@@ -383,10 +381,6 @@ export default function Home() {
             <div className="eyebrow">UM ESPAÇO PARA VOLTAR</div>
             <h1>Sua atenção<br /><em>começa aqui.</em></h1>
             <p>Respire no seu ritmo. Observe sem julgar. Cada sessão fica guardada apenas neste dispositivo.</p>
-            <div className="hero-stats">
-              <div><strong>{sessions.length}</strong><span>sessões</span></div>
-              <div><strong>{Math.round(sessions.reduce((sum, item) => sum + item.durationSeconds, 0) / 60)}</strong><span>minutos</span></div>
-            </div>
           </section>
 
           <section className="setup-card">
@@ -461,19 +455,8 @@ export default function Home() {
               })}
             </div>
             <button className="start-button" onClick={startPractice}>
-              <span>Iniciar prática</span><span className="start-arrow">↗</span>
+              <span>Iniciar prática</span><Play className="start-icon" size={18} strokeWidth={1.8} fill="currentColor" aria-hidden="true" />
             </button>
-          </section>
-
-          <section className="recent-strip">
-            <div><span className="section-number">04</span><h2>Última prática</h2></div>
-            {sessions[0] ? (
-              <div className="last-session">
-                <strong>{formatDuration(sessions[0].durationSeconds)}</strong>
-                <span>{sessions[0].mode === "zen" ? "Modo Zen" : `Smart · ${sessions[0].checkpoints ? Math.round((sessions[0].focused / sessions[0].checkpoints) * 100) : 0}% presença`}</span>
-                <time>{new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(sessions[0].endedAt))}</time>
-              </div>
-            ) : <p className="empty-inline">Seu histórico começa depois da primeira sessão.</p>}
           </section>
         </div>
       ) : (
