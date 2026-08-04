@@ -36,7 +36,7 @@ const SOUNDS: { value: Soundscape; label: string; hint: string; icon: LucideIcon
   { value: "none", label: "Silêncio", hint: "somente o chime", icon: VolumeX },
   { value: "rain", label: "Chuva", hint: "leve e constante", icon: CloudRain, file: "chuva.mp3" },
   { value: "brown-noise", label: "Brown noise", hint: "grave e contínuo", icon: AudioWaveform, file: "brown-noise.mp3" },
-  { value: "waterfall", label: "Cachoeira", hint: "fluxo natural", icon: Waves, file: "cachoeira.mp3" },
+  { value: "waterfall", label: "Riacho", hint: "água corrente", icon: Waves, file: "riacho.mp3" },
   { value: "library", label: "Biblioteca", hint: "ambiente sereno", icon: BookOpen, file: "biblioteca.mp3" },
 ];
 
