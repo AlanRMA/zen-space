@@ -301,7 +301,7 @@ export default function Home() {
 
   if (practiceActive) {
     return (
-      <main className="practice-shell">
+      <main className={`practice-shell mode-${mode}`}>
         <div className="practice-topbar">
           <span className="brand-logo-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -29,8 +29,8 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-geist-sans), sans-serif; transition: background .35s ease, color .35s ease; }
+html { background: var(--bg); overflow-x: clip; }
+body { margin: 0; min-width: 280px; overflow-x: clip; background: var(--bg); color: var(--ink); font-family: var(--font-geist-sans), sans-serif; transition: background .35s ease, color .35s ease; }
 button, input { font: inherit; }
 button { color: inherit; -webkit-tap-highlight-color: transparent; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
@@ -198,7 +198,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 }
 
 @media (max-width: 640px) {
-  .site-header { height: 58px; grid-template-columns: 1fr auto auto; padding: 0 max(14px, env(safe-area-inset-left)); gap: 14px; }
+  .site-header { height: calc(58px + env(safe-area-inset-top)); grid-template-columns: 1fr auto auto; padding: env(safe-area-inset-top) max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left)); gap: 14px; }
   .brand > span:last-child { display: none; }
   .brand-logo-wrap { width: 25px; height: 25px; flex-basis: 25px; }
   .brand-logo { width: 25px !important; height: 25px !important; max-width: 25px; }
@@ -227,7 +227,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
   .breath-inputs input { font-size: 23px; }
   .breath-inputs small, .breath-inputs em { display: none; }
   .number-control { grid-template-columns: minmax(20px, 1fr) auto; gap: 0; }
-  .number-steppers button { width: 17px; height: 16px; }
+  .number-steppers button { width: 22px; height: 21px; }
   .preset-tools { margin: 10px 0 14px; }
   .preset-list { gap: 5px; }
   .preset-load { padding-block: 7px; }
@@ -239,27 +239,56 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
   .sound-options small { display: none; }
   .sound-options strong { font-size: 8px; }
   .start-button { min-height: 52px; padding: 15px 20px; }
-  .data-heading { align-items: start; flex-direction: column; }
+  .data-heading { width: 100%; align-items: start; flex-direction: column; gap: 18px; margin-bottom: 28px; }
+  .period-filter { width: 100%; }
+  .period-filter button { flex: 1; min-height: 38px; }
   .metric-grid { grid-template-columns: 1fr; }
   .metric-grid article { min-height: 128px; }
-  .session-row { grid-template-columns: 50px 1fr 1fr; gap: 14px; padding: 17px 18px; }
+  .history-title { padding: 20px 16px; }
+  .session-row { grid-template-columns: 50px 1fr 1fr; gap: 14px; margin-inline: 6px; padding: 17px 18px; }
   .session-kind { grid-column: 2 / -1; }
   .session-cell { padding-top: 10px; border-top: 1px solid var(--line-soft); }
   .session-cell:nth-last-child(1) { grid-column: auto; }
-  .practice-topbar { height: 58px; padding: 0 max(14px, env(safe-area-inset-left)); }
-  .practice-sound { padding: 7px 9px; }
-  .practice-sound select { max-width: 68px; }
-  .practice-center { justify-content: center; padding: 12px 20px; }
+  .practice-shell { min-height: 100dvh; }
+  .practice-topbar { height: calc(58px + env(safe-area-inset-top)); grid-template-columns: auto 1fr auto; gap: 8px; padding: env(safe-area-inset-top) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left)); }
+  .practice-mode { display: none; }
+  .practice-actions { min-width: 0; gap: 5px; }
+  .practice-sound { position: relative; width: 36px; height: 36px; flex: 0 0 36px; justify-content: center; padding: 0; }
+  .practice-sound select { position: absolute; inset: 0; width: 100%; max-width: none; opacity: 0; cursor: pointer; }
+  .quiet-button { min-height: 36px; padding: 8px 11px; font-size: 9px; }
+  .practice-center { justify-content: center; min-width: 0; overflow: hidden; padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); }
   .breath-stage { width: min(68vw, 300px); }
+  .practice-shell.mode-smart .breath-stage { width: min(50vw, 220px); }
   .practice-timer { font-size: 38px; }
   .practice-time-area { margin-top: 5px; }
   .practice-time-area.is-visible { min-height: 78px; }
-  .checkpoint-panel { padding: 15px 14px 18px; gap: 12px; }
+  .practice-shell.mode-smart .practice-time-area.is-visible { min-height: 70px; }
+  .checkpoint-panel { padding: 15px max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); gap: 12px; }
   .checkpoint-buttons { gap: 5px; }
   .checkpoint-buttons button { height: 58px; justify-content: center; flex-direction: column; gap: 4px; padding: 5px; }
   .checkpoint-buttons kbd { width: 19px; height: 19px; }
   .checkpoint-copy strong { font-size: 15px; }
   .live-presence span { display: none; }
+}
+
+@media (max-width: 360px) {
+  .site-header { gap: 10px; }
+  .nav-tabs { gap: 14px; }
+  .dashboard-layout, .data-view { width: calc(100% - 14px); }
+  .setup-card { padding-inline: 12px; }
+  .hero-panel h1 { font-size: 34px; }
+  .data-heading h1 { font-size: 36px; }
+  .breath-inputs label { padding-inline: 5px; }
+  .breath-inputs label > span { font-size: 7px; }
+  .session-row { grid-template-columns: 42px 1fr 1fr; gap: 10px; padding: 14px 12px; }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  .practice-shell { overflow-y: auto; }
+  .practice-topbar { height: calc(48px + env(safe-area-inset-top)); }
+  .practice-center { padding-block: 6px; }
+  .breath-stage, .practice-shell.mode-smart .breath-stage { width: 180px; }
+  .practice-time-area { margin-top: 0; }
 }
 
 @media (max-width: 640px) and (max-height: 700px) {
