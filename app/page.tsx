@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 
 type Mode = "zen" | "smart";
 type Theme = "dark" | "light";
 type Tab = "inicio" | "dados";
 type CheckpointChoice = "focus" | "distraction" | "sleep";
+type Soundscape = "none" | "rain" | "brown-noise" | "waterfall" | "library";
 
 type BreathSetup = {
   inhale: number;
@@ -24,9 +26,19 @@ type Session = {
   checkpoints: number;
 };
 
+type BreathPreset = BreathSetup & { id: string };
+
 const STORAGE_KEY = "zen-space-sessions-v1";
 const THEME_KEY = "zen-space-theme-v1";
+const PRESETS_KEY = "zen-space-breath-presets-v1";
 const DEFAULT_BREATH: BreathSetup = { inhale: 4, holdIn: 2, exhale: 4, holdOut: 2 };
+const SOUNDS: { value: Soundscape; label: string; hint: string; glyph: string; file?: string }[] = [
+  { value: "none", label: "Silêncio", hint: "somente o chime", glyph: "○" },
+  { value: "rain", label: "Chuva", hint: "leve e constante", glyph: "⌇", file: "chuva.mp3" },
+  { value: "brown-noise", label: "Brown noise", hint: "grave e contínuo", glyph: "≈", file: "brown-noise.mp3" },
+  { value: "waterfall", label: "Cachoeira", hint: "fluxo natural", glyph: "≋", file: "cachoeira.mp3" },
+  { value: "library", label: "Biblioteca", hint: "ambiente sereno", glyph: "⋮", file: "biblioteca.mp3" },
+];
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
@@ -82,6 +94,8 @@ export default function Home() {
   const [mode, setMode] = useState<Mode>("zen");
   const [breath, setBreath] = useState<BreathSetup>(DEFAULT_BREATH);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [presets, setPresets] = useState<BreathPreset[]>([]);
+  const [soundscape, setSoundscape] = useState<Soundscape>("none");
   const [practiceActive, setPracticeActive] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
@@ -90,29 +104,41 @@ export default function Home() {
   const [focused, setFocused] = useState(0);
   const [checkpoints, setCheckpoints] = useState(0);
   const [period, setPeriod] = useState<"7" | "30" | "all">("30");
+  const [periodNow] = useState(() => Date.now());
   const checkpointTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCheckpointRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setSessions(JSON.parse(stored));
-      const storedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
-      if (storedTheme === "light" || storedTheme === "dark") {
-        setTheme(storedTheme);
-      } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-        setTheme("light");
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setSessions(JSON.parse(stored));
+        const storedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
+        const storedPresets = localStorage.getItem(PRESETS_KEY);
+        if (storedPresets) setPresets(JSON.parse(storedPresets));
+        if (storedTheme === "light" || storedTheme === "dark") {
+          setTheme(storedTheme);
+        } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+          setTheme("light");
+        }
+      } catch {
+        // Local persistence is an enhancement; the session can still run.
       }
-    } catch {
-      // Local persistence is an enhancement; the session can still run.
-    }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     try { localStorage.setItem(THEME_KEY, theme); } catch { /* no-op */ }
   }, [theme]);
+
+  useEffect(() => () => {
+    ambientAudioRef.current?.pause();
+    if (checkpointTimerRef.current) clearTimeout(checkpointTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!practiceActive) return;
@@ -156,8 +182,31 @@ export default function Home() {
     setCheckpointOpen(false);
     setCheckpointChoice(null);
     setTab("dados");
+    ambientAudioRef.current?.pause();
+    ambientAudioRef.current = null;
     if (checkpointTimerRef.current) clearTimeout(checkpointTimerRef.current);
   }, [breath, checkpoints, focused, mode, practiceActive, startedAt]);
+
+  const playAmbient = useCallback((nextSound: Soundscape) => {
+    ambientAudioRef.current?.pause();
+    ambientAudioRef.current = null;
+    if (nextSound === "none") return;
+    const source = SOUNDS.find((item) => item.value === nextSound)?.file;
+    if (!source) return;
+    const audio = new Audio(`/audio/${source}`);
+    audio.loop = true;
+    audio.volume = 0.38;
+    audio.preload = "none";
+    ambientAudioRef.current = audio;
+    void audio.play().catch(() => {
+      // The option remains ready while the user is still adding local audio files.
+    });
+  }, []);
+
+  const changeSound = (nextSound: Soundscape) => {
+    setSoundscape(nextSound);
+    if (practiceActive) playAmbient(nextSound);
+  };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -184,7 +233,22 @@ export default function Home() {
     setCheckpointChoice(null);
     lastCheckpointRef.current = 0;
     if (mode === "smart") playChime(audioContextRef);
+    playAmbient(soundscape);
     setPracticeActive(true);
+  };
+
+  const savePreset = () => {
+    const code = breathLabel(breath);
+    if (presets.some((preset) => breathLabel(preset) === code)) return;
+    const next = [...presets, { ...breath, id: crypto.randomUUID() }];
+    setPresets(next);
+    try { localStorage.setItem(PRESETS_KEY, JSON.stringify(next)); } catch { /* no-op */ }
+  };
+
+  const deletePreset = (id: string) => {
+    const next = presets.filter((preset) => preset.id !== id);
+    setPresets(next);
+    try { localStorage.setItem(PRESETS_KEY, JSON.stringify(next)); } catch { /* no-op */ }
   };
 
   const chooseCheckpoint = (choice: CheckpointChoice) => {
@@ -224,9 +288,9 @@ export default function Home() {
 
   const filteredSessions = useMemo(() => {
     if (period === "all") return sessions;
-    const cutoff = Date.now() - Number(period) * 86400000;
+    const cutoff = periodNow - Number(period) * 86400000;
     return sessions.filter((session) => new Date(session.endedAt).getTime() >= cutoff);
-  }, [period, sessions]);
+  }, [period, periodNow, sessions]);
 
   const totalSeconds = filteredSessions.reduce((sum, session) => sum + session.durationSeconds, 0);
   const smartSessions = filteredSessions.filter((session) => session.mode === "smart" && session.checkpoints > 0);
@@ -238,9 +302,17 @@ export default function Home() {
     return (
       <main className="practice-shell">
         <div className="practice-topbar">
-          <span className="brand-mark" aria-hidden="true" />
+          <span className="brand-logo-wrap"><Image src="/logo.png" alt="" width="36" height="36" className="brand-logo" priority /></span>
           <span className="practice-mode">MODO {mode.toUpperCase()}</span>
-          <button className="quiet-button" onClick={endPractice} aria-label="Encerrar e salvar sessão">Encerrar</button>
+          <div className="practice-actions">
+            <label className="practice-sound">
+              <span aria-hidden="true">◖</span>
+              <select value={soundscape} onChange={(event) => changeSound(event.target.value as Soundscape)} aria-label="Som ambiente">
+                {SOUNDS.map((sound) => <option key={sound.value} value={sound.value}>{sound.label}</option>)}
+              </select>
+            </label>
+            <button className="quiet-button" onClick={endPractice} aria-label="Encerrar e salvar sessão">Encerrar</button>
+          </div>
         </div>
 
         <section className="practice-center" aria-live="polite">
@@ -287,7 +359,7 @@ export default function Home() {
     <main className="app-shell">
       <header className="site-header">
         <button className="brand" onClick={() => setTab("inicio")} aria-label="Ir para o início">
-          <span className="brand-mark" aria-hidden="true" />
+          <span className="brand-logo-wrap"><Image src="/logo.png" alt="" width="36" height="36" className="brand-logo" priority /></span>
           <span>ZEN SPACE</span>
         </button>
         <nav className="nav-tabs" aria-label="Navegação principal">
@@ -345,14 +417,40 @@ export default function Home() {
                 </label>
               ))}
             </div>
-            <p className="breath-tip">Os tempos de espera podem ser zero.</p>
+            <div className="preset-tools">
+              <div className="preset-list" aria-label="Configurações de respiração salvas">
+                {presets.map((preset) => (
+                  <span className="preset-chip" key={preset.id}>
+                    <button className="preset-load" onClick={() => setBreath({ inhale: preset.inhale, holdIn: preset.holdIn, exhale: preset.exhale, holdOut: preset.holdOut })}>{breathLabel(preset)}</button>
+                    <button className="preset-delete" onClick={() => deletePreset(preset.id)} aria-label={`Excluir respiração ${breathLabel(preset)}`}>×</button>
+                  </span>
+                ))}
+                <button className="save-preset" onClick={savePreset} disabled={presets.some((preset) => breathLabel(preset) === breathLabel(breath))}>＋ Salvar configuração</button>
+              </div>
+              <p className="breath-tip">Os tempos de espera podem ser zero.</p>
+            </div>
+
+            <div className="setup-divider subtle" />
+
+            <div className="setup-heading compact sound-heading">
+              <div><span className="section-number">03</span><h2>Som ambiente</h2></div>
+              <span className="sound-status">{SOUNDS.find((item) => item.value === soundscape)?.label}</span>
+            </div>
+            <div className="sound-options">
+              {SOUNDS.map((sound) => (
+                <button key={sound.value} className={soundscape === sound.value ? "selected" : ""} onClick={() => changeSound(sound.value)}>
+                  <span className="sound-glyph">{sound.glyph}</span>
+                  <span><strong>{sound.label}</strong><small>{sound.hint}</small></span>
+                </button>
+              ))}
+            </div>
             <button className="start-button" onClick={startPractice}>
               <span>Iniciar prática</span><span className="start-arrow">↗</span>
             </button>
           </section>
 
           <section className="recent-strip">
-            <div><span className="section-number">03</span><h2>Última prática</h2></div>
+            <div><span className="section-number">04</span><h2>Última prática</h2></div>
             {sessions[0] ? (
               <div className="last-session">
                 <strong>{formatDuration(sessions[0].durationSeconds)}</strong>
