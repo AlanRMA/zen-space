@@ -38,8 +38,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 .app-shell { min-height: 100svh; background: radial-gradient(circle at 15% 4%, color-mix(in srgb, var(--surface-2) 60%, transparent), transparent 31%), var(--bg); }
 .site-header { height: 76px; padding: 0 clamp(22px, 5vw, 76px); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 1px solid var(--line-soft); position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(18px); }
 .brand { display: inline-flex; align-items: center; gap: 12px; background: none; border: 0; padding: 0; font-size: 12px; letter-spacing: .22em; font-weight: 650; justify-self: start; cursor: pointer; }
-.brand-logo-wrap { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; overflow: hidden; flex: 0 0 auto; }
-.brand-logo { display: block; width: 100%; height: 100%; object-fit: cover; filter: invert(1); mix-blend-mode: screen; }
+.brand-logo-wrap { display: grid; place-items: center; width: 26px; height: 26px; overflow: hidden; flex: 0 0 26px; }
+.brand-logo { display: block; width: 26px !important; height: 26px !important; max-width: 26px; object-fit: contain; filter: invert(1); mix-blend-mode: screen; }
 :root[data-theme="light"] .brand-logo { filter: none; mix-blend-mode: multiply; }
 .nav-tabs { display: flex; align-items: stretch; height: 76px; gap: 36px; }
 .nav-tabs button { border: 0; border-bottom: 1px solid transparent; background: none; padding: 3px 2px 0; color: var(--muted); font-size: 13px; cursor: pointer; }
@@ -79,11 +79,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 .breath-inputs label { padding: 13px 12px 11px; background: var(--bg); border: 1px solid transparent; border-radius: 14px; min-width: 0; transition: border-color .2s, background .2s; }
 .breath-inputs label:focus-within { border-color: var(--muted); background: var(--surface-2); }
 .breath-inputs label > span { color: var(--muted); font-size: 9px; display: block; white-space: nowrap; }
-.breath-inputs label > div { display: flex; align-items: baseline; gap: 3px; margin: 7px 0 2px; }
-.breath-inputs input { width: 45px; border: 0; padding: 0; background: transparent; color: var(--ink); font-family: Georgia, serif; font-size: 28px; }
-.breath-inputs input::-webkit-inner-spin-button { opacity: .35; }
+.breath-inputs label > div { margin: 7px 0 2px; }
+.number-control { display: grid; grid-template-columns: minmax(28px, 1fr) auto auto; align-items: center; gap: 3px; }
+.breath-inputs input { width: 100%; min-width: 0; border: 0; padding: 0; background: transparent; color: var(--ink); font-family: Georgia, serif; font-size: 28px; appearance: textfield; -moz-appearance: textfield; }
+.breath-inputs input::-webkit-inner-spin-button, .breath-inputs input::-webkit-outer-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
 .breath-inputs small { color: var(--muted-2); font-size: 8px; }
 .breath-inputs em { font-style: normal; color: var(--muted-2); font-size: 8px; white-space: nowrap; }
+.number-steppers { display: flex; flex-direction: column; align-items: center; margin-left: auto; }
+.number-steppers button { width: 18px; height: 15px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.number-steppers button:hover { color: var(--ink); }
 .preset-tools { margin: 14px 0 24px; }
 .preset-list { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .preset-chip { display: inline-flex; align-items: center; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
@@ -103,7 +107,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 .sound-options button { border: 0; background: var(--bg); color: var(--muted); border-radius: 14px; min-height: 82px; padding: 10px 7px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform .2s, background .2s, color .2s; min-width: 0; }
 .sound-options button:hover { transform: translateY(-2px); color: var(--ink); }
 .sound-options button.selected { background: var(--ink); color: var(--inverse); }
-.sound-glyph { font-family: Georgia, serif; font-size: 20px; line-height: 1; }
+.sound-glyph { display: block; flex: 0 0 auto; }
 .sound-options button > span:last-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .sound-options strong { font-size: 8px; font-weight: 600; white-space: nowrap; }
 .sound-options small { color: inherit; opacity: .56; font-size: 6.5px; white-space: nowrap; }
@@ -166,7 +170,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 .breath-orbit { position: absolute; border: 1px solid var(--line); border-radius: 50%; }
 .orbit-one { inset: 4%; opacity: .8; }
 .orbit-two { inset: 19%; opacity: .6; }
-.breath-circle { width: 60%; aspect-ratio: 1; border-radius: 50%; background: var(--ink); color: var(--inverse); display: flex; flex-direction: column; align-items: center; justify-content: center; will-change: transform; transition: transform .28s linear; box-shadow: 0 0 80px color-mix(in srgb, var(--ink) 12%, transparent); }
+.breath-circle { width: 60%; aspect-ratio: 1; border-radius: 50%; background: #e5e3dd; color: #151513; display: flex; flex-direction: column; align-items: center; justify-content: center; will-change: transform; transition: transform .28s linear, background-color .32s ease, color .32s ease, box-shadow .32s ease; }
+.breath-circle.phase-inhale { background: #eceae4; color: #141412; box-shadow: 0 0 90px rgba(236, 234, 228, .13); }
+.breath-circle.phase-exhale { background: #d4d2cc; color: #171715; box-shadow: 0 0 74px rgba(212, 210, 204, .1); }
+.breath-circle.phase-holdIn { background: #52524e; color: #f4f2ec; box-shadow: 0 0 54px rgba(82, 82, 78, .16); }
+.breath-circle.phase-holdOut { background: #85847e; color: #f6f4ee; box-shadow: 0 0 60px rgba(133, 132, 126, .12); }
 .breath-circle span { font-size: 14px; letter-spacing: .02em; }
 .breath-circle strong { font-family: Georgia, serif; font-size: 44px; font-weight: 400; margin-top: 2px; }
 .practice-timer { font-family: var(--font-geist-mono), monospace; font-size: clamp(38px, 5vw, 55px); letter-spacing: -.07em; margin-top: 20px; }
@@ -201,7 +209,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outli
 @media (max-width: 640px) {
   .site-header { height: 64px; grid-template-columns: 1fr auto auto; padding: 0 18px; gap: 15px; }
   .brand > span:last-child { display: none; }
-  .brand-logo-wrap { width: 30px; height: 30px; }
+  .brand-logo-wrap { width: 25px; height: 25px; flex-basis: 25px; }
+  .brand-logo { width: 25px !important; height: 25px !important; max-width: 25px; }
   .nav-tabs { height: 64px; gap: 20px; }
   .nav-tabs button { font-size: 11px; }
   .theme-toggle { width: 34px; height: 34px; }

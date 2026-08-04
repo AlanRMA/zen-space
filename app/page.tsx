@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AudioWaveform, BookOpen, ChevronDown, ChevronUp, CloudRain, Volume2, VolumeX, Waves, type LucideIcon } from "lucide-react";
 
 type Mode = "zen" | "smart";
 type Theme = "dark" | "light";
@@ -31,12 +32,12 @@ const STORAGE_KEY = "zen-space-sessions-v1";
 const THEME_KEY = "zen-space-theme-v1";
 const PRESETS_KEY = "zen-space-breath-presets-v1";
 const DEFAULT_BREATH: BreathSetup = { inhale: 4, holdIn: 2, exhale: 4, holdOut: 2 };
-const SOUNDS: { value: Soundscape; label: string; hint: string; glyph: string; file?: string }[] = [
-  { value: "none", label: "Silêncio", hint: "somente o chime", glyph: "○" },
-  { value: "rain", label: "Chuva", hint: "leve e constante", glyph: "⌇", file: "chuva.mp3" },
-  { value: "brown-noise", label: "Brown noise", hint: "grave e contínuo", glyph: "≈", file: "brown-noise.mp3" },
-  { value: "waterfall", label: "Cachoeira", hint: "fluxo natural", glyph: "≋", file: "cachoeira.mp3" },
-  { value: "library", label: "Biblioteca", hint: "ambiente sereno", glyph: "⋮", file: "biblioteca.mp3" },
+const SOUNDS: { value: Soundscape; label: string; hint: string; icon: LucideIcon; file?: string }[] = [
+  { value: "none", label: "Silêncio", hint: "somente o chime", icon: VolumeX },
+  { value: "rain", label: "Chuva", hint: "leve e constante", icon: CloudRain, file: "chuva.mp3" },
+  { value: "brown-noise", label: "Brown noise", hint: "grave e contínuo", icon: AudioWaveform, file: "brown-noise.mp3" },
+  { value: "waterfall", label: "Cachoeira", hint: "fluxo natural", icon: Waves, file: "cachoeira.mp3" },
+  { value: "library", label: "Biblioteca", hint: "ambiente sereno", icon: BookOpen, file: "biblioteca.mp3" },
 ];
 
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -282,7 +283,7 @@ export default function Home() {
       : selected?.key === "exhale" ? 1 - progress * 0.42
       : selected?.key === "holdIn" ? 1 : 0.58;
     const remaining = selected ? Math.max(1, Math.ceil(selected.duration - within)) : 1;
-    return { label: selected?.label ?? "Respire", scale, remaining };
+    return { key: selected?.key ?? "inhale", label: selected?.label ?? "Respire", scale, remaining };
   }, [breath, elapsed]);
 
   const filteredSessions = useMemo(() => {
@@ -303,12 +304,12 @@ export default function Home() {
         <div className="practice-topbar">
           <span className="brand-logo-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" width="36" height="36" className="brand-logo" decoding="async" />
+            <img src="/logo.png" alt="" width="26" height="26" className="brand-logo" decoding="async" />
           </span>
           <span className="practice-mode">MODO {mode.toUpperCase()}</span>
           <div className="practice-actions">
             <label className="practice-sound">
-              <span aria-hidden="true">◖</span>
+              <Volume2 size={14} strokeWidth={1.6} aria-hidden="true" />
               <select value={soundscape} onChange={(event) => changeSound(event.target.value as Soundscape)} aria-label="Som ambiente">
                 {SOUNDS.map((sound) => <option key={sound.value} value={sound.value}>{sound.label}</option>)}
               </select>
@@ -321,7 +322,7 @@ export default function Home() {
           <div className="breath-stage">
             <div className="breath-orbit orbit-one" />
             <div className="breath-orbit orbit-two" />
-            <div className="breath-circle" style={{ transform: `scale(${breathPhase.scale})` }}>
+            <div className={`breath-circle phase-${breathPhase.key}`} style={{ transform: `scale(${breathPhase.scale})` }}>
               <span>{breathPhase.label}</span>
               <strong>{breathPhase.remaining}</strong>
             </div>
@@ -363,7 +364,7 @@ export default function Home() {
         <button className="brand" onClick={() => setTab("inicio")} aria-label="Ir para o início">
           <span className="brand-logo-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" width="36" height="36" className="brand-logo" decoding="async" />
+            <img src="/logo.png" alt="" width="26" height="26" className="brand-logo" decoding="async" />
           </span>
           <span>ZEN SPACE</span>
         </button>
@@ -417,7 +418,14 @@ export default function Home() {
               ] as const).map(([key, label, hint]) => (
                 <label key={key}>
                   <span>{label}</span>
-                  <div><input type="number" inputMode="numeric" min={key === "inhale" || key === "exhale" ? 1 : 0} max="20" value={breath[key]} onChange={(event) => updateBreath(key, Number(event.target.value))} /><small>seg</small></div>
+                  <div className="number-control">
+                    <input type="number" inputMode="numeric" min={key === "inhale" || key === "exhale" ? 1 : 0} max="20" value={breath[key]} aria-label={`${label} em segundos`} onChange={(event) => updateBreath(key, Number(event.target.value))} />
+                    <small>seg</small>
+                    <span className="number-steppers">
+                      <button type="button" onClick={() => updateBreath(key, breath[key] + 1)} aria-label={`Aumentar ${label.toLowerCase()}`}><ChevronUp size={13} strokeWidth={1.7} /></button>
+                      <button type="button" onClick={() => updateBreath(key, breath[key] - 1)} aria-label={`Diminuir ${label.toLowerCase()}`}><ChevronDown size={13} strokeWidth={1.7} /></button>
+                    </span>
+                  </div>
                   <em>{hint}</em>
                 </label>
               ))}
@@ -442,12 +450,15 @@ export default function Home() {
               <span className="sound-status">{SOUNDS.find((item) => item.value === soundscape)?.label}</span>
             </div>
             <div className="sound-options">
-              {SOUNDS.map((sound) => (
-                <button key={sound.value} className={soundscape === sound.value ? "selected" : ""} onClick={() => changeSound(sound.value)}>
-                  <span className="sound-glyph">{sound.glyph}</span>
-                  <span><strong>{sound.label}</strong><small>{sound.hint}</small></span>
-                </button>
-              ))}
+              {SOUNDS.map((sound) => {
+                const Icon = sound.icon;
+                return (
+                  <button key={sound.value} className={soundscape === sound.value ? "selected" : ""} onClick={() => changeSound(sound.value)}>
+                    <Icon className="sound-glyph" size={21} strokeWidth={1.45} aria-hidden="true" />
+                    <span><strong>{sound.label}</strong><small>{sound.hint}</small></span>
+                  </button>
+                );
+              })}
             </div>
             <button className="start-button" onClick={startPractice}>
               <span>Iniciar prática</span><span className="start-arrow">↗</span>
